@@ -1,28 +1,36 @@
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { NativeBaseProvider } from "native-base";
-import { ThemeProvider } from "./src/themes/ThemeContext";
-import { WrapperNavigation } from "./src/routes/WrapperNavigatorContext";
-import { CantinaProvider } from "./src/contexts/CantinaContext";
-import { ClienteProvider } from "./src/contexts/ClienteContext";
-import { AuthProvider } from "./src/contexts/AuthContext";
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import { AuthProvider } from './src/contexts/AuthContext';
+import { ThemeProvider } from './src/themes/ThemeContext';
+import { ClienteProvider } from './src/contexts/ClienteContext';
+import { CantinaProvider } from './src/contexts/CantinaContext';
+import { WrapperNavigation } from './src/routes/WrapperNavigatorContext';
+import { StatusBar } from 'expo-status-bar';
 
-const App = () => {
+const Stack = createStackNavigator();
+
+export default function App() {
   return (
-    <AuthProvider>
-    <NativeBaseProvider>
-      <ThemeProvider>
-        <NavigationContainer>
+    <NavigationContainer>
+      <StatusBar style="auto" />
+      <AuthProvider>
+        <ThemeProvider>
           <ClienteProvider>
             <CantinaProvider>
-              <WrapperNavigation/>
+              <WrapperNavigation isCliente={true} isLogado={false} />
             </CantinaProvider>
           </ClienteProvider>
-        </NavigationContainer>
-      </ThemeProvider>
-    </NativeBaseProvider>
-    </AuthProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </NavigationContainer>
   );
-};
+}
 
-export default App;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+});

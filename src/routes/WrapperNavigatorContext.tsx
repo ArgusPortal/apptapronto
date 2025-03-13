@@ -1,12 +1,10 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
-
+import { NavigationContainer } from '@react-navigation/native';
 import CustomerTabsNavigator from './navigation/CustomerTabsNavigator';
 import ShopTabsNavigator from './navigation/ShopTabsNavigator';
-import { ClienteContext } from '../contexts/ClienteContext';
-import { CantinaContext } from '../contexts/CantinaContext';
+import { useAuth } from '../contexts/AuthContext';
 import { CadastroClienteScreen } from '../components/Screen/Cliente/CadastroClienteScreen';
-import { useCantinaLogada, useClienteLogado } from '../contexts/AuthContext';
 import { CadastroCantinaScreen } from '../components/Screen/Cantina/CadastroCantinaScreen';
 import LoginClienteScreen from '../components/Screen/Cliente/LoginClienteScreen';
 import LoginCantinaScreen from '../components/Screen/Cantina/LoginCantinaScreen';
@@ -16,98 +14,33 @@ import SacolaScreen from '../components/Screen/Cliente/SacolaScreen';
 
 const Stack = createStackNavigator();
 
-
-
-export const WrapperNavigation = ({ isCliente }: { isCliente: boolean, isLogado: boolean }) => {
-  const clienteLogado = useClienteLogado();
-  const cantinaLogada = useCantinaLogada();
-
-  const renderizarRota = () => {
-
-    if (isCliente) {
-      if (clienteLogado) {
-        return (
-          <Stack.Screen
-            name="CustomerTabsNavigator"
-            component={CustomerTabsNavigator}
-            options={{ headerShown: false }}
-          />
-        );
-      } else {
-        return (
-          <Stack.Screen
-            name="LoginClienteScreen"
-            component={LoginClienteScreen}
-            options={{ headerShown: false }}
-          />
-        );
-      }
-    }
-
-    if (!isCliente) {
-      if (cantinaLogada) {
-        return (
-          <Stack.Screen
-            name="ShopTabsNavigator"
-            component={ShopTabsNavigator}
-            options={{ headerShown: false }}
-          />
-        );
-      } else {
-        return (
-          <Stack.Screen
-            name="LoginCantinaScreen"
-            component={LoginCantinaScreen}
-            options={{ headerShown: false }}
-          />
-        );
-      }
-    }
-
-  };
+export const WrapperNavigation = ({ isCliente, isLogado }: { isCliente: boolean, isLogado: boolean }) => {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return (
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Login" component={isCliente ? LoginClienteScreen : LoginCantinaScreen} />
+        <Stack.Screen name="Cadastro" component={isCliente ? CadastroClienteScreen : CadastroCantinaScreen} />
+      </Stack.Navigator>
+    );
+  }
 
   return (
-    <Stack.Navigator>
-      {renderizarRota()}
-
-      <Stack.Screen
-        name="ShopTabsNavigator"
-        component={ShopTabsNavigator}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name="CustomerTabsNavigator"
-        component={CustomerTabsNavigator}
-        options={{ headerShown: false }}
-      />
-
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {isCliente ? (
+        <Stack.Screen name="CustomerTabs" component={CustomerTabsNavigator} />
+      ) : (
+        <Stack.Screen name="ShopTabs" component={ShopTabsNavigator} />
+      )}
       <Stack.Screen
         name="ListarCardapio"
         component={ListarCardapio}
         options={{ headerShown: false }}
       />
-
       <Stack.Screen
         name='CadastroProdutoScreen'
         component={CadastroProdutoScreen}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name='CadastroCantinaScreen'
-        component={CadastroCantinaScreen}
-        options={{ headerShown: false }}
-      />
-
-      <Stack.Screen
-        name='LoginClienteScreen'
-        component={LoginClienteScreen}
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name='CadastroClienteScreen'
-        component={CadastroClienteScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -115,9 +48,8 @@ export const WrapperNavigation = ({ isCliente }: { isCliente: boolean, isLogado:
         component={SacolaScreen}
         options={{ headerShown: false }}
       />
-
-
-
     </Stack.Navigator>
   );
 };
+
+export default WrapperNavigation;

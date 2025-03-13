@@ -1,20 +1,10 @@
 import React, { useContext, useState } from 'react';
-import { AuthError, onAuthStateChanged, User } from '@firebase/auth';
+import { AuthError, onAuthStateChanged, User } from 'firebase/auth';
 import { useSignInWithEmailAndPassword, useSignOut, useSendPasswordResetEmail } from 'react-firebase-hooks/auth';
 import { auth } from '../api/config/firebaseConfig';
 import InitialLoading from '../components/Common/LoadingSpinner';
 
-
-export const useClienteLogado = () => {
-    const { clienteLogado } = useAuth();
-    return clienteLogado;
-};
-
-export const useCantinaLogada = () => {
-    const { cantinaLogada } = useAuth();
-    return cantinaLogada;
-};
-
+// Definindo os tipos
 type UserContextType = {
     user: User | undefined | null;
     signIn: (email: string, password: string) => Promise<void>;
@@ -27,6 +17,16 @@ type UserContextType = {
     setClienteLogado: (clienteLogado: boolean) => void;
     cantinaLogada: boolean;
     setCantinaLogada: (cantinaLogada: boolean) => void;
+};
+
+export const useClienteLogado = () => {
+    const { clienteLogado } = useAuth();
+    return clienteLogado;
+};
+
+export const useCantinaLogada = () => {
+    const { cantinaLogada } = useAuth();
+    return cantinaLogada;
 };
 
 export const AuthContext = React.createContext<UserContextType>({
@@ -64,15 +64,28 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     React.useEffect(() => {
-        onAuthStateChanged(auth, setCurrentUser);
-    }, [])
+        const unsubscribe = onAuthStateChanged(auth, setCurrentUser);
+        return unsubscribe;
+    }, []);
 
     if (signOutLoading) {
-        return <InitialLoading />
+        return <InitialLoading />;
     }
 
     return (
-        <AuthContext.Provider value={{ clienteLogado, setClienteLogado, cantinaLogada, setCantinaLogada, user: currentUser, signIn, signOut: signOutApp, loading, error, sendPasswordReset, sendPasswordResetEmailError }}>
+        <AuthContext.Provider value={{ 
+            clienteLogado, 
+            setClienteLogado, 
+            cantinaLogada, 
+            setCantinaLogada, 
+            user: currentUser, 
+            signIn, 
+            signOut: signOutApp, 
+            loading, 
+            error, 
+            sendPasswordReset, 
+            sendPasswordResetEmailError
+        }}>
             {children}
         </AuthContext.Provider>
     );
