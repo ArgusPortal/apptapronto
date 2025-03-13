@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, createContext, ReactNode } from 'react';
 import { AuthError, onAuthStateChanged, User } from 'firebase/auth';
 import { useSignInWithEmailAndPassword, useSignOut, useSendPasswordResetEmail } from 'react-firebase-hooks/auth';
 import { auth } from '../api/config/firebaseConfig';
@@ -19,17 +19,12 @@ type UserContextType = {
     setCantinaLogada: (cantinaLogada: boolean) => void;
 };
 
-export const useClienteLogado = () => {
-    const { clienteLogado } = useAuth();
-    return clienteLogado;
-};
+interface AuthProviderProps {
+    children: ReactNode;
+}
 
-export const useCantinaLogada = () => {
-    const { cantinaLogada } = useAuth();
-    return cantinaLogada;
-};
-
-export const AuthContext = React.createContext<UserContextType>({
+// Criando o contexto com valores padrão
+const AuthContext = createContext<UserContextType>({
     user: undefined,
     signIn: async () => { },
     signOut: async () => { },
@@ -43,10 +38,30 @@ export const AuthContext = React.createContext<UserContextType>({
     setCantinaLogada: () => { }
 });
 
-export const AuthProvider = ({ children }: any) => {
+// Hook personalizado para usar o contexto
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth deve ser usado dentro de um AuthProvider");
+    }
+    return context;
+};
+
+export const useClienteLogado = () => {
+    return useAuth().clienteLogado;
+};
+
+export const useCantinaLogada = () => {
+    return useAuth().cantinaLogada;
+};
+
+// Provider component
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    console.log("AuthProvider inicializado"); // Debugging log
+    
     const [clienteLogado, setClienteLogado] = useState<boolean>(false);
     const [cantinaLogada, setCantinaLogada] = useState<boolean>(false);
-    const [currentUser, setCurrentUser] = React.useState<User | null>();
+    const [currentUser, setCurrentUser] = React.useState<User | null>(null);
     const [signInWithEmailAndPassword, credentials, loading, error] = useSignInWithEmailAndPassword(auth);
     const [signOut, signOutLoading, signOutError] = useSignOut(auth);
     const [sendPasswordResetEmail, sendPasswordResetEmailError] = useSendPasswordResetEmail(auth);
@@ -64,7 +79,10 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     React.useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, setCurrentUser);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            setCurrentUser(user);
+            console.log("Auth state changed:", user ? "logged in" : "logged out");
+        });
         return unsubscribe;
     }, []);
 
@@ -72,23 +90,26 @@ export const AuthProvider = ({ children }: any) => {
         return <InitialLoading />;
     }
 
+    const value = {
+        clienteLogado, 
+        setClienteLogado, 
+        cantinaLogada, 
+        setCantinaLogada, 
+        user: currentUser, 
+        signIn, 
+        signOut: signOutApp, 
+        loading, 
+        error, 
+        sendPasswordReset, 
+        sendPasswordResetEmailError
+    };
+
     return (
-        <AuthContext.Provider value={{ 
-            clienteLogado, 
-            setClienteLogado, 
-            cantinaLogada, 
-            setCantinaLogada, 
-            user: currentUser, 
-            signIn, 
-            signOut: signOutApp, 
-            loading, 
-            error, 
-            sendPasswordReset, 
-            sendPasswordResetEmailError
-        }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
 };
 
-export const useAuth = () => useContext(AuthContext);
+// Re-exportando o contexto para compatibilidade
+export { AuthContext };

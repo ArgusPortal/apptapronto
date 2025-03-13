@@ -21,15 +21,7 @@ buildscript {
     dependencies {
         classpath('com.android.tools.build:gradle:7.4.1')
         classpath('com.facebook.react:react-native-gradle-plugin')
-        // Adicionar o plugin do Google Services
-        classpath('com.google.gms:google-services:4.3.15')
     }
-}
-
-// Adicionado para compatibilidade com o novo plugin do Firebase
-plugins {
-    id 'com.android.application' apply false
-    id 'com.google.gms.google-services' version '4.4.2' apply false
 }
 
 allprojects {
